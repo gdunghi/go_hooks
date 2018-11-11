@@ -125,38 +125,6 @@ func getCommitMessages(commits []struct {
 	return result
 }
 
-func deploy() {
-	// docker build current directory
-	cmdName := "docker"
-	cmdArgs := []string{"run", "--rm", "-d", "--name", "go_hooks", "-p", "6969:8000", "gdunghi/go_hooks"}
-
-	cmd := exec.Command(cmdName, cmdArgs...)
-	cmdReader, err := cmd.StdoutPipe()
-	if err != nil {
-		log.Println("Error creating StdoutPipe for Cmd", err)
-		os.Exit(1)
-	}
-
-	scanner := bufio.NewScanner(cmdReader)
-	go func() {
-		for scanner.Scan() {
-			log.Println("Command out | ", scanner.Text())
-		}
-	}()
-
-	err = cmd.Start()
-	if err != nil {
-		log.Println("Error starting Cmd", err)
-		os.Exit(1)
-	}
-
-	err = cmd.Wait()
-	if err != nil {
-		log.Println("Error waiting for Cmd", err)
-		os.Exit(1)
-	}
-}
-
 func gitClone() {
 	log.Println("start gitClone")
 	cmdName := "git"
