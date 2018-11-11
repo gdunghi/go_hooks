@@ -88,7 +88,7 @@ func hooks(c echo.Context) error {
 	}
 
 	log.Println("Project : ", h.Project.Name, "user :", h.UserName, " push ", getCommitMessages(h.Commits))
-	// dockerLogout()
+	dockerLogout()
 	dockerLogin()
 	if _, err := os.Stat("bsw-web"); os.IsNotExist(err) {
 		gitClone()
