@@ -5,6 +5,8 @@ COPY . /go/src/github.com/gdunghi/go_hook
 RUN apk add --no-cache git
 RUN apk add --no-cache bash
 RUN go get github.com/labstack/echo
+RUN go get github.com/utahta/go-linenotify
+
 RUN go build -o main .
 
 # final stage

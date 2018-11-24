@@ -9,7 +9,10 @@ import (
 	"time"
 
 	"github.com/labstack/echo"
+	"github.com/utahta/go-linenotify"
 )
+
+var token = "CWzVKn8QpeDTqyeEuRKczHPd2ecmNk56Edky5OqCgih" // EDIT THIS
 
 type hookBody struct {
 	ObjectKind   string `json:"object_kind"`
@@ -65,6 +68,10 @@ type hookBody struct {
 	TotalCommitsCount int `json:"total_commits_count"`
 }
 
+type lineNoti struct {
+	line *linenotify.Client
+}
+
 func main() {
 	file, err := os.OpenFile("info.log", os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
@@ -74,34 +81,51 @@ func main() {
 
 	log.SetOutput(file)
 	e := echo.New()
+	line := linenotify.New()
+	noti := lineNoti{
+		line: line,
+	}
 
-	e.POST("/hooks", hooks)
+	e.POST("/hooks", noti.hooks)
+	e.GET("/hooks", noti.sendNoti)
+
 	e.Logger.Fatal(e.Start(":6969"))
 }
 
+func (noti lineNoti) sendNoti(c echo.Context) error {
+
+	// line := linenotify.New()
+	noti.line.Notify(token, "hello world", "", "", nil)
+
+	return c.JSON(http.StatusOK, "")
+}
+
 //Create ... Create Handler
-func hooks(c echo.Context) error {
+func (noti lineNoti) hooks(c echo.Context) error {
+
 	h := new(hookBody)
 	if err := c.Bind(h); err != nil {
 
 		return c.JSON(http.StatusBadRequest, "")
 	}
 
-	log.Println("Project : ", h.Project.Name, "user :", h.UserName, " push ", getCommitMessages(h.Commits))
-	dockerLogout()
-	dockerLogin()
-	if _, err := os.Stat("bsw-web"); os.IsNotExist(err) {
-		gitClone()
-	} else {
-		gitPull()
-	}
+	// log.Println("Project : ", h.Project.Name, "user :", h.UserName, " push ", getCommitMessages(h.Commits))
+	// log.Println("------")
+	// dockerLogout()
+	// dockerLogin()
+	// if _, err := os.Stat("bsw-web"); os.IsNotExist(err) {
+	// 	gitClone()
+	// } else {
+	// 	gitPull()
+	// }
 
-	dockerBuild()
-	// dockerPush()
-	dockerStop()
-	dockerRun()
-
-	return c.JSON(http.StatusOK, h)
+	// dockerBuild()
+	// // dockerPush()
+	// dockerStop()
+	// dockerRun()
+	r := h.UserName + " push " + getCommitMessages(h.Commits)
+	noti.line.Notify(token, r, "", "", nil)
+	return c.String(http.StatusOK, r)
 
 }
 
